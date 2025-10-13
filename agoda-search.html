@@ -1,128 +1,78 @@
-<!-- Softr Parent Container -->
+<!-- Nội dung iframe: agoda-search.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Agoda Search Widget</title>
 <style>
-  /* --- Wrapper cho iframe --- */
-  .agoda-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    max-width: 1200px; /* desktop rộng hơn */
-    margin: 0 auto;
-    position: relative;
-    z-index: 5;
-    overflow: visible !important; /* để suggestion xổ ra */
-  }
-
-  .agoda-container {
-    position: relative;
-    width: 360px; /* desktop default width */
-    max-width: 100%;
-    height: 48px; /* chỉ vừa search box */
-    transition: all 0.3s ease;
-    overflow: visible !important; /* popup suggestion xổ ra */
-    z-index: 10;
-  }
-
-  .agoda-container.focused {
-    z-index: 99999 !important;
-    position: relative;
-    isolation: isolate;
-  }
-
-  .agoda-iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    z-index: 11;
-  }
-
-  /* Mobile */
-  @media (max-width: 480px) {
-    .agoda-container {
-      width: 100%;
-      max-width: 360px;
-      height: 48px; /* chỉ vừa search box */
-      overflow: visible !important; /* popup xổ ra */
-    }
-  }
-
-  /* Phá giới hạn Softr section */
-  [data-block-type="custom_code"],
-  [data-element-type="custom_code"],
-  .custom-html-block,
-  .softr-section,
-  .softr-view-wrapper,
-  section,
-  div[data-element-id],
-  div[data-block-type],
-  .content-wrapper {
-    overflow: visible !important;
-    position: static !important;
-    z-index: auto !important;
-  }
-
   html, body {
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    margin: 0; padding: 0; width: 100%; height: 100%; background: transparent; overflow: visible;
+    -webkit-text-size-adjust: 100%;
   }
 
-  body.agoda-focused {
-    overflow-y: hidden !important;
+  #adgshp1134854488 {
+    width: 100%;
+    height: 48px; /* chỉ vừa search box */
+    overflow: visible;
+    position: relative;
+    z-index: 9999;
+  }
+
+  input, select, textarea, button {
+    font-size: 16px !important;
+    line-height: 1.4;
   }
 </style>
+</head>
+<body>
+<div id="adgshp1134854488"></div>
 
-<div class="agoda-wrapper">
-  <div class="agoda-container" id="agodaBox">
-    <iframe class="agoda-iframe"
-      src="https://xacthucviet.github.io/xacthucviet-tools/agoda-search.html"
-      loading="lazy">
-    </iframe>
-  </div>
-</div>
+<script src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
+<script>
+  var stg = {};
+  stg.crt = "8068189953740";
+  stg.version = "1.04";
+  stg.id = stg.name = "adgshp1134854488";
+  stg.width = "300px";
+  stg.height = "48px";
+  stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
+  stg.Layout = "Wide";
+  stg.Language = "vi-vn";
+  stg.Cid = "1950843";
+  stg.City = "15932"; // Đà Lạt
+  stg.DestinationName = "Đà Lạt, Việt Nam";
+  stg.OverideConf = false;
+  new AgdSherpa(stg).initialize();
+</script>
 
 <script>
-  const box = document.getElementById('agodaBox');
+function sendHeight() {
+  const body = document.body;
+  const height = Math.max(body.scrollHeight, body.offsetHeight, 48);
+  window.parent.postMessage({ type: 'resize', height }, '*');
+}
 
-  // Ngăn Safari tự zoom khi nhập
-  const metaViewport = document.querySelector('meta[name="viewport"]');
-  if (metaViewport) {
-    metaViewport.setAttribute(
-      'content',
-      'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
-    );
-  } else {
-    const m = document.createElement('meta');
-    m.name = 'viewport';
-    m.content =
-      'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-    document.head.appendChild(m);
+// focus/blur
+document.addEventListener('focusin', () => {
+  window.parent.postMessage('agoda-focus', '*');
+  setTimeout(sendHeight, 100);
+});
+document.addEventListener('focusout', () => {
+  window.parent.postMessage('agoda-blur', '*');
+  setTimeout(sendHeight, 200);
+});
+
+// Đo định kỳ (cho suggestion popup)
+setInterval(sendHeight, 800);
+
+// Khi chọn suggestion
+document.addEventListener('click', (e) => {
+  const target = e.target;
+  if (target.closest('.sherpa-suggestion')) {
+    window.parent.postMessage('agoda-select-suggestion', '*');
   }
-
-  // Listen message từ iframe
-  window.addEventListener('message', (e) => {
-    if (!box) return;
-
-    if (e.data === 'agoda-focus') {
-      box.classList.add('focused');
-      document.body.classList.add('agoda-focused');
-      let parent = box.parentElement;
-      while (parent) {
-        parent.style.overflow = 'visible';
-        parent = parent.parentElement;
-      }
-    } else if (e.data === 'agoda-blur') {
-      box.classList.remove('focused');
-      document.body.classList.remove('agoda-focused');
-      box.style.height = '48px';
-    } else if (e.data === 'agoda-select-suggestion') {
-      // Khi chọn suggestion, thu lại height ngay
-      box.classList.remove('focused');
-      document.body.classList.remove('agoda-focused');
-      box.style.height = '48px';
-    } else if (e.data?.type === 'resize' && e.data.height) {
-      // Cập nhật height theo iframe gửi lên (suggestion popup)
-      box.style.height = e.data.height + 'px';
-    }
-  });
+});
 </script>
+</body>
+</html>
