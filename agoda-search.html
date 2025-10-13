@@ -13,7 +13,7 @@
       margin: 0;
       padding: 0;
       background: transparent;
-      overflow: hidden;
+      overflow: visible; /* ✅ CHO PHÉP popup hiển thị */
       width: 100%;
       height: 100%;
       -webkit-text-size-adjust: 100%; /* Safari fix: ngăn phóng to chữ */
@@ -26,16 +26,16 @@
       align-items: flex-start;
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow: visible; /* ✅ CHO PHÉP suggestion tràn ra */
     }
 
-    /* ✅ Scale vừa khít 320x96, không scroll trên mobile */
+    /* ✅ Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
     #adgshp1134854488 {
       transform: scale(0.88);
       transform-origin: top center;
       width: 320px;
       height: 96px;
-      overflow: hidden;
+      overflow: visible; /* ✅ không chặn popup */
     }
 
     /* ✅ Đảm bảo font đủ lớn để không bị zoom khi nhập */
@@ -78,7 +78,7 @@
     new AgdSherpa(stg).initialize();
   </script>
 
-  <!-- ✅ Thêm đoạn này để gửi tín hiệu focus/blur ra ngoài -->
+  <!-- ✅ Gửi tín hiệu focus/blur ra ngoài iframe -->
   <script>
     document.addEventListener("focusin", () => {
       window.parent.postMessage("agoda-focus", "*");
