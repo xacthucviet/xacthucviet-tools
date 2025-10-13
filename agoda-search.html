@@ -1,110 +1,104 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Agoda Search Widget</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Agoda Search Widget</title>
 
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: transparent;
-        width: 100%;
-        height: 100%;
-        -webkit-text-size-adjust: 100%;
-        overflow: visible; /* cho phép suggestion xổ ra */
-      }
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      -webkit-text-size-adjust: 100%;
+      overflow: visible; /* cho phép suggestion xổ ra */
+    }
 
-      /* Khung căn giữa widget */
-      .widget-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        width: 100%;
-        overflow: hidden; /* tránh scroll ngang */
-        position: relative;
-        z-index: 9999;
-      }
+    /* Container căn giữa widget */
+    .widget-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      position: relative;
+      z-index: 9999;
+    }
 
-      /* Container iframe */
+    /* Widget Agoda */
+    #adgshp1134854488 {
+      width: 360px; /* desktop base width */
+      height: 120px; /* desktop base height */
+      transform: scale(1); /* desktop scale */
+      transform-origin: top center;
+      overflow: visible;
+      position: relative;
+      z-index: 9999;
+    }
+
+    input, select, textarea, button {
+      font-size: 16px !important;
+      line-height: 1.4;
+    }
+
+    /* Mobile tuning: chỉ show search box, center widget */
+    @media (max-width: 480px) {
       #adgshp1134854488 {
-        width: 360px; /* desktop width */
-        height: 200px; /* desktop height */
-        overflow: hidden;
-        position: relative;
-        z-index: 9999;
-        transform: scale(1); /* desktop bình thường */
-        transform-origin: top left;
+        width: 360px;
+        height: 96px; /* chỉ search box */
+        transform: scale(0.95);
+        transform-origin: top center;
       }
+    }
+  </style>
+</head>
 
-      /* Giữ font đủ lớn để Safari không zoom */
-      input, select, textarea, button {
-        font-size: 16px !important;
-        line-height: 1.4;
-      }
+<body>
+  <div class="widget-wrapper">
+    <div id="adgshp1134854488"></div>
+  </div>
 
-      /* --- Mobile --- */
-      @media (max-width: 480px) {
-        #adgshp1134854488 {
-          width: 360px; 
-          height: 96px; /* chỉ show search box */
-          transform: scale(0.53); /* giảm để vừa container */
-          transform-origin: top left;
-        }
-      }
-    </style>
-  </head>
+  <!-- Agoda script -->
+  <script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
+  <script type="text/javascript">
+    var stg = {};
+    stg.crt = "8068189953740";
+    stg.version = "1.04";
+    stg.id = stg.name = "adgshp1134854488";
+    stg.width = "300px";
+    stg.height = "120px";
+    stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
+    stg.Layout = "Wide";
+    stg.Language = "vi-vn";
+    stg.Cid = "1950843";
+    stg.City = "15932"; // Đà Lạt
+    stg.DestinationName = "Đà Lạt, Việt Nam";
+    stg.OverideConf = false;
+    new AgdSherpa(stg).initialize();
+  </script>
 
-  <body>
-    <div class="widget-wrapper">
-      <div id="adgshp1134854488"></div>
-    </div>
+  <!-- Gửi height ra parent iframe / Softr -->
+  <script>
+    function sendHeight() {
+      const body = document.body;
+      const height = Math.max(body.scrollHeight, body.offsetHeight, 160);
+      window.parent.postMessage({ type: "resize", height }, "*");
+    }
 
-    <!-- Agoda script -->
-    <script
-      type="text/javascript"
-      src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"
-    ></script>
-    <script type="text/javascript">
-      var stg = {};
-      stg.crt = "8068189953740";
-      stg.version = "1.04";
-      stg.id = stg.name = "adgshp1134854488";
-      stg.width = "300px";
-      stg.height = "96px";
-      stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
-      stg.Layout = "Wide";
-      stg.Language = "vi-vn";
-      stg.Cid = "1950843";
-      stg.City = "15932"; // Đà Lạt
-      stg.DestinationName = "Đà Lạt, Việt Nam";
-      stg.OverideConf = false;
-      new AgdSherpa(stg).initialize();
-    </script>
+    document.addEventListener("focusin", () => {
+      window.parent.postMessage("agoda-focus", "*");
+      setTimeout(sendHeight, 200);
+    });
 
-    <!-- Focus/blur + resize -->
-    <script>
-      function sendHeight() {
-        const body = document.body;
-        const height = Math.max(body.scrollHeight, body.offsetHeight, 160);
-        window.parent.postMessage({ type: "resize", height }, "*");
-      }
+    document.addEventListener("focusout", () => {
+      window.parent.postMessage("agoda-blur", "*");
+      setTimeout(sendHeight, 400);
+    });
 
-      document.addEventListener("focusin", () => {
-        window.parent.postMessage("agoda-focus", "*");
-        setTimeout(sendHeight, 200);
-      });
-
-      document.addEventListener("focusout", () => {
-        window.parent.postMessage("agoda-blur", "*");
-        setTimeout(sendHeight, 400);
-      });
-
-      setInterval(sendHeight, 800);
-    </script>
-  </body>
+    setInterval(sendHeight, 800);
+  </script>
+</body>
 </html>
