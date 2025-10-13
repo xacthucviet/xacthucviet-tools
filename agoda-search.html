@@ -6,158 +6,114 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <title>Agoda Search Box</title>
+    <title>Agoda Search Widget</title>
 
     <style>
+      html,
       body {
         margin: 0;
         padding: 0;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-      }
-
-      /* Container chính */
-      .agoda-search-wrapper {
+        background: transparent;
+        overflow: visible; /* ✅ Cho phép suggestion xổ ra */
         width: 100%;
-        max-width: 360px;
-        margin: 0 auto;
-        position: relative;
+        height: 100%;
+        -webkit-text-size-adjust: 100%;
       }
 
-      /* Giữ khung cao cơ bản */
-      .agoda-search-container {
-        position: relative;
+      /* ✅ Khung căn giữa widget */
+      .widget-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
         width: 100%;
-        height: 130px;
-        transition: height 0.3s ease;
-        overflow: visible;
-      }
-
-      /* Nếu có suggestion, cho phép tràn */
-      .agoda-search-container.expanded {
-        overflow: visible;
+        height: 100%;
+        overflow: visible; /* ✅ Cho phép suggestion tràn ra */
+        position: relative;
         z-index: 9999;
       }
 
-      /* Agoda iframe nhúng */
-      iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
+      /* ✅ Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
+      #adgshp1134854488 {
+        transform: scale(0.9);
+        transform-origin: top center;
+        width: 320px;
+        height: 96px;
+        overflow: visible;
+        z-index: 9999;
+        position: relative;
       }
 
-      /* Giả lập hộp tìm kiếm nếu test nội bộ */
-      .fake-search-box {
-        width: 100%;
-        border: 1px solid #ccc;
-        padding: 8px 10px;
-        border-radius: 6px;
-        box-sizing: border-box;
+      /* ✅ Giữ font đủ lớn để Safari không zoom */
+      input,
+      select,
+      textarea,
+      button {
+        font-size: 16px !important;
+        line-height: 1.4;
       }
 
-      .SuggestionList {
-        background: #fff;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        margin-top: 4px;
-        max-height: 220px;
-        overflow-y: auto;
-        position: absolute;
-        width: 100%;
-        z-index: 10000;
-      }
-
-      .SuggestionItem {
-        padding: 8px 10px;
-        cursor: pointer;
-      }
-
-      .SuggestionItem:hover {
-        background: #f0f0f0;
+      /* ✅ Mobile tuning */
+      @media (max-width: 480px) {
+        #adgshp1134854488 {
+          transform: scale(0.84);
+          transform-origin: top center;
+        }
       }
     </style>
   </head>
 
   <body>
-    <div class="agoda-search-wrapper">
-      <div class="agoda-search-container" id="searchBox">
-        <!-- 🔹 Đây là nơi bạn nhúng hộp tìm kiếm Agoda thật -->
-        <input
-          type="search"
-          class="fake-search-box"
-          id="searchInput"
-          placeholder="Tìm khách sạn, thành phố..."
-        />
-        <div class="SuggestionList" id="suggestions" style="display: none"></div>
-      </div>
+    <div class="widget-wrapper">
+      <div id="adgshp1134854488"></div>
     </div>
 
+    <!-- Agoda script -->
+    <script
+      type="text/javascript"
+      src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"
+    ></script>
+    <script type="text/javascript">
+      var stg = {};
+      stg.crt = "8068189953740";
+      stg.version = "1.04";
+      stg.id = stg.name = "adgshp1134854488";
+      stg.width = "300px";
+      stg.height = "96px";
+      stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
+      stg.Layout = "Wide";
+      stg.Language = "vi-vn";
+      stg.Cid = "1950843";
+      stg.City = "15932"; // Đà Lạt
+      stg.DestinationName = "Đà Lạt, Việt Nam";
+      stg.OverideConf = false;
+      new AgdSherpa(stg).initialize();
+    </script>
+
+    <!-- ✅ Gửi tín hiệu focus/blur + height thật ra ngoài -->
     <script>
-      const input = document.getElementById("searchInput");
-      const suggestionBox = document.getElementById("suggestions");
-      const container = document.getElementById("searchBox");
-
-      const demoSuggestions = [
-        "Nha Trang",
-        "Đà Lạt",
-        "Phan Thiết",
-        "Vũng Tàu",
-        "Hà Nội",
-        "Hội An",
-        "Phú Quốc",
-      ];
-
-      // Hàm render suggestions demo
-      function showSuggestions(query) {
-        if (!query) {
-          suggestionBox.style.display = "none";
-          container.classList.remove("expanded");
-          notifyParentHeight(130);
-          return;
-        }
-
-        const filtered = demoSuggestions.filter((s) =>
-          s.toLowerCase().includes(query.toLowerCase())
+      function sendHeight() {
+        const body = document.body;
+        const height = Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          160 // tối thiểu
         );
-        suggestionBox.innerHTML = filtered
-          .map((s) => `<div class="SuggestionItem">${s}</div>`)
-          .join("");
-        suggestionBox.style.display = "block";
-        container.classList.add("expanded");
-        notifyParentHeight();
-      }
-
-      // Gửi chiều cao thật của box ra ngoài
-      function notifyParentHeight(fixedHeight) {
-        const suggestions = document.querySelector(".SuggestionList");
-        const height = fixedHeight
-          ? fixedHeight
-          : Math.min(
-              (suggestions?.scrollHeight || 0) + 160, // 160 cho input + padding
-              500
-            );
-
         window.parent.postMessage({ type: "resize", height }, "*");
       }
 
-      // Lắng nghe sự kiện gõ
-      input.addEventListener("input", (e) => {
-        showSuggestions(e.target.value);
-      });
-
-      input.addEventListener("focus", () => {
-        notifyParentHeight();
+      // focus/blur từ input trong iframe Agoda
+      document.addEventListener("focusin", () => {
         window.parent.postMessage("agoda-focus", "*");
+        setTimeout(sendHeight, 200);
       });
 
-      input.addEventListener("blur", () => {
-        setTimeout(() => {
-          suggestionBox.style.display = "none";
-          container.classList.remove("expanded");
-          notifyParentHeight(130);
-          window.parent.postMessage("agoda-blur", "*");
-        }, 200);
+      document.addEventListener("focusout", () => {
+        window.parent.postMessage("agoda-blur", "*");
+        setTimeout(() => sendHeight(), 400);
       });
+
+      // Đo định kỳ vì suggestion có thể hiện chậm
+      setInterval(sendHeight, 800);
     </script>
   </body>
 </html>
