@@ -5,19 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agoda Search Widget</title>
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background: transparent;
-      height: 100vh;
+      overflow: hidden !important;
+      height: 96px !important; /* giữ đúng kích thước mong muốn */
+    }
+
+    /* Giúp widget nhỏ gọn đúng tỉ lệ hiển thị trên mobile */
+    div[id^="adgshp"] {
+      transform: scale(0.82);          /* thu nhỏ vừa khít khung 320x96 */
+      transform-origin: top left;
+    }
+
+    /* Căn giữa nội dung trong khung hiển thị */
+    body {
+      display: flex;
+      justify-content: flex-start;     /* hoặc center nếu muốn canh giữa */
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    /* Ẩn mọi phần Agoda render dư */
+    #adgshp1134854488 {
+      overflow: hidden !important;
     }
   </style>
 </head>
 <body>
   <div id="adgshp1134854488"></div>
+
   <script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
   <script type="text/javascript">
     var stg = new Object();
