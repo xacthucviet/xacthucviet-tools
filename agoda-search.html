@@ -1,73 +1,141 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Agoda Search Widget</title>
 
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      overflow: visible;
-      -webkit-text-size-adjust: 100%;
-    }
-
-    /* Widget container */
-    .widget-wrapper {
+    /* --- Softr parent container --- */
+    .agoda-wrapper {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       width: 100%;
-      overflow: visible;
+      max-width: 1150px;
+      margin: 0 auto;
       position: relative;
-      z-index: 9999;
+      z-index: 5;
+      overflow: visible !important;
     }
 
-    /* Agoda widget frame */
-    #adgshp1134854488 {
-      width: 320px;
-      height: 96px; /* Mặc định vừa search box */
-      overflow: visible;
+    .agoda-container {
       position: relative;
-      z-index: 9999;
-      transform: scale(1);
-      transform-origin: top center;
+      width: 360px;
+      height: 96px; /* default height search box */
+      overflow: hidden !important;
+      transition: all 0.3s ease;
+      z-index: 10;
     }
 
-    /* Input font-size chuẩn mobile Safari */
-    input, select, textarea, button {
-      font-size: 16px !important;
-      line-height: 1.4;
+    .agoda-container.focused {
+      height: 300px !important; /* show suggestion */
+      z-index: 99999 !important;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .agoda-iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 11;
     }
 
     /* Mobile tuning */
     @media (max-width: 480px) {
-      #adgshp1134854488 {
+      .agoda-container {
         width: 320px;
-        height: 96px; /* chỉ search box */
+        height: 96px;
         transform: scale(1);
+        overflow: hidden;
       }
+      .agoda-container.focused {
+        height: 300px !important;
+      }
+    }
+
+    /* Override Softr section overflow */
+    [data-block-type="custom_code"],
+    [data-element-type="custom_code"],
+    .custom-html-block,
+    .softr-section,
+    .softr-view-wrapper,
+    section,
+    div[data-element-id],
+    div[data-block-type],
+    .content-wrapper {
+      overflow: visible !important;
+      position: static !important;
+      z-index: auto !important;
+    }
+
+    html, body {
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+    }
+
+    body.agoda-focused {
+      overflow-y: hidden !important;
+    }
+
+    /* Prevent Safari zoom */
+    input, select, textarea, button {
+      font-size: 16px !important;
+      line-height: 1.4;
     }
   </style>
 </head>
 
 <body>
-  <div class="widget-wrapper">
-    <div id="adgshp1134854488"></div>
+  <div class="agoda-wrapper">
+    <div class="agoda-container" id="agodaBox">
+      <iframe class="agoda-iframe" src="https://xacthucviet.github.io/xacthucviet-tools/agoda-search.html" loading="lazy"></iframe>
+    </div>
   </div>
 
-  <!-- Agoda script -->
-  <script src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
   <script>
+    // Handle iframe focus/blur and dynamic resize
+    const box = document.getElementById('agodaBox');
+
+    window.addEventListener('message', (e) => {
+      if (!box) return;
+
+      // Focus: open container to show suggestion
+      if (e.data === 'agoda-focus') {
+        box.classList.add('focused');
+        document.body.classList.add('agoda-focused');
+        let parent = box.parentElement;
+        while (parent) {
+          parent.style.overflow = 'visible';
+          parent = parent.parentElement;
+        }
+      }
+
+      // Blur: close container back to search box height
+      else if (e.data === 'agoda-blur') {
+        box.classList.remove('focused');
+        document.body.classList.remove('agoda-focused');
+        box.style.height = '96px';
+      }
+
+      // Resize: adjust container dynamically
+      if (e.data?.type === 'resize' && e.data.height) {
+        const h = Math.max(e.data.height, 96);
+        box.style.height = h + 'px';
+      }
+    });
+  </script>
+
+  <!-- Agoda widget script -->
+  <script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
+  <script type="text/javascript">
     var stg = {};
     stg.crt = "8068189953740";
     stg.version = "1.04";
     stg.id = stg.name = "adgshp1134854488";
-    stg.width = "320px";
+    stg.width = "300px";
     stg.height = "96px";
     stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
     stg.Layout = "Wide";
@@ -79,7 +147,7 @@
     new AgdSherpa(stg).initialize();
   </script>
 
-  <!-- Resize + focus/blur signaling -->
+  <!-- Send dynamic height from iframe to parent -->
   <script>
     function sendHeight() {
       const body = document.body;
@@ -94,11 +162,10 @@
 
     document.addEventListener("focusout", () => {
       window.parent.postMessage("agoda-blur", "*");
-      setTimeout(() => sendHeight(), 400);
+      setTimeout(sendHeight, 400);
     });
 
-    // Periodic resize (suggestion load chậm)
-    setInterval(sendHeight, 800);
+    setInterval(sendHeight, 800); // check suggestion height periodically
   </script>
 </body>
 </html>
