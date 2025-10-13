@@ -1,54 +1,56 @@
+<!-- Nội dung iframe: agoda-search.html -->
+<!-- Bản này đã fix mobile zoom, desktop suggestion kéo/đẩy -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Agoda Search Widget</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    overflow-x: hidden;
-    overflow-y: auto;
-    width: 100%;
-    height: 100%;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-text-size-adjust: 100%;
+}
 
-  /* Widget wrapper */
-  .widget-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100%;
-    overflow: visible;
-    position: relative;
-  }
+.widget-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  position: relative;
+  z-index: 9999;
+}
 
-  /* Container của Sherpa */
+#adgshp1134854488 {
+  width: 320px;
+  height: 48px;
+  overflow: visible;
+  position: relative;
+  z-index: 9999;
+  transform: scale(1);
+  transform-origin: top center;
+}
+
+input, select, textarea, button {
+  font-size: 16px !important;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
   #adgshp1134854488 {
-    width: 320px;
+    width: 100%;
+    max-width: 360px;
     height: 48px;
-    overflow: visible;
-    position: relative;
-    transform: scale(1);
-    transform-origin: top center;
-    z-index: 9999;
   }
-
-  /* Safari font fix để không auto zoom */
-  input, select, textarea, button {
-    font-size: 16px !important;
-  }
-
-  /* Mobile */
-  @media (max-width: 480px) {
-    #adgshp1134854488 {
-      width: 100%;
-      max-width: 360px;
-      height: 48px;
-    }
-  }
+}
 </style>
 </head>
 <body>
@@ -56,60 +58,54 @@
   <div id="adgshp1134854488"></div>
 </div>
 
-<!-- Agoda Sherpa -->
-<script src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
-<script>
-  var stg = {};
-  stg.crt = "8068189953740";
-  stg.version = "1.04";
-  stg.id = stg.name = "adgshp1134854488";
-  stg.width = "300px";
-  stg.height = "48px";
-  stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
-  stg.Layout = "Wide";
-  stg.Language = "vi-vn";
-  stg.Cid = "1950843";
-  stg.City = "15932"; // Đà Lạt
-  stg.DestinationName = "Đà Lạt, Việt Nam";
-  stg.OverideConf = false;
-  new AgdSherpa(stg).initialize();
+<!-- Agoda script -->
+<script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
+<script type="text/javascript">
+var stg = {};
+stg.crt = "8068189953740";
+stg.version = "1.04";
+stg.id = stg.name = "adgshp1134854488";
+stg.width = "300px";
+stg.height = "48px";
+stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
+stg.Layout = "Wide";
+stg.Language = "vi-vn";
+stg.Cid = "1950843";
+stg.City = "15932"; // Đà Lạt
+stg.DestinationName = "Đà Lạt, Việt Nam";
+stg.OverideConf = false;
+new AgdSherpa(stg).initialize();
 </script>
 
-<!-- Message to parent: focus/blur/resize/select -->
+<!-- JS gửi height & focus/blur/select lên parent -->
 <script>
-  const widgetBox = document.getElementById('adgshp1134854488');
+const widgetBox = document.getElementById('adgshp1134854488');
 
-  function sendHeight(){
-    const height = Math.max(widgetBox.scrollHeight, 48);
-    window.parent.postMessage({type:'resize', height}, '*');
-  }
+function sendHeight(height){ window.parent.postMessage({type:'resize', height: height}, '*'); }
+function sendFocus(){ window.parent.postMessage('agoda-focus','*'); }
+function sendBlur(){ window.parent.postMessage('agoda-blur','*'); }
+function sendSelect(){ window.parent.postMessage('agoda-select-suggestion','*'); }
 
-  function sendFocus(){ window.parent.postMessage('agoda-focus','*'); }
-  function sendBlur(){ window.parent.postMessage('agoda-blur','*'); }
-  function sendSelect(){ window.parent.postMessage('agoda-select-suggestion','*'); }
+function setupInputListener(){
+  const input = widgetBox.querySelector('input');
+  if(!input) return;
+  input.addEventListener('focus', ()=>{
+    sendFocus();
+    setTimeout(()=>sendHeight(widgetBox.scrollHeight),200);
+  });
+  input.addEventListener('blur', ()=>{
+    sendBlur();
+    setTimeout(()=>sendHeight(widgetBox.scrollHeight),400);
+  });
+  input.addEventListener('input', ()=>{
+    setTimeout(()=>sendSelect(),200);
+  });
+}
 
-  // Focus/blur input
-  function setupInputListener(){
-    const input = widgetBox.querySelector('input');
-    if(!input) return;
-    input.addEventListener('focus', ()=>{
-      sendFocus();
-      setTimeout(sendHeight,200);
-    });
-    input.addEventListener('blur', ()=>{
-      sendBlur();
-      setTimeout(sendHeight,400);
-    });
-    input.addEventListener('input', ()=>{
-      // Khi người dùng chọn suggestion, Sherpa sẽ tự gọi callback
-      setTimeout(sendSelect,200);
-    });
-  }
+// Thường xuyên đo chiều cao vì suggestion có thể xuất hiện chậm
+setInterval(()=>sendHeight(widgetBox.scrollHeight), 800);
 
-  // Thường xuyên đo chiều cao phòng trường hợp suggestion load chậm
-  setInterval(sendHeight, 800);
-
-  window.addEventListener('load', setupInputListener);
+window.addEventListener('load', ()=>{ setupInputListener(); });
 </script>
 </body>
 </html>
