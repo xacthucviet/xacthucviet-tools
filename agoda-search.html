@@ -59,6 +59,7 @@
     <div id="adgshp1134854488"></div>
   </div>
 
+  <!-- Agoda script -->
   <script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
   <script type="text/javascript">
     var stg = {};
@@ -75,6 +76,16 @@
     stg.DestinationName = "Đà Lạt, Việt Nam";
     stg.OverideConf = false;
     new AgdSherpa(stg).initialize();
+  </script>
+
+  <!-- ✅ Thêm đoạn này để gửi tín hiệu focus/blur ra ngoài -->
+  <script>
+    document.addEventListener("focusin", () => {
+      window.parent.postMessage("agoda-focus", "*");
+    });
+    document.addEventListener("focusout", () => {
+      window.parent.postMessage("agoda-blur", "*");
+    });
   </script>
 </body>
 </html>
