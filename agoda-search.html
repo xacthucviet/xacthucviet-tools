@@ -1,123 +1,117 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Agoda Search Widget</title>
+<!-- Softr Parent Container -->
+<style>
+  /* --- Wrapper cho iframe --- */
+  .agoda-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 1150px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
+    overflow: visible !important;
+  }
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: transparent;
-      overflow-x: hidden;
-      overflow-y: auto;
+  .agoda-container {
+    position: relative;
+    width: 360px;  /* desktop default width */
+    height: 48px;  /* initial height */
+    transition: all 0.3s ease;
+    z-index: 10;
+    overflow: visible !important;
+  }
+
+  .agoda-container.focused {
+    z-index: 99999 !important;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .agoda-iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 11;
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .agoda-container {
       width: 100%;
-      height: 100%;
-      -webkit-text-size-adjust: 100%;
+      max-width: 360px;
+      height: 48px; /* minimal height */
+      overflow: visible !important;
     }
+  }
 
-    /* Widget wrapper */
-    .widget-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      width: 100%;
-      height: auto;
-      overflow: visible;
-      position: relative;
-      z-index: 9999;
-    }
+  /* Phá giới hạn Softr section */
+  [data-block-type="custom_code"],
+  [data-element-type="custom_code"],
+  .custom-html-block,
+  .softr-section,
+  .softr-view-wrapper,
+  section,
+  div[data-element-id],
+  div[data-block-type],
+  .content-wrapper {
+    overflow: visible !important;
+    position: static !important;
+    z-index: auto !important;
+  }
 
-    /* Container của Sherpa */
-    #adgshp1134854488 {
-      width: 320px;
-      height: 48px; /* height mặc định cho desktop & mobile */
-      overflow: visible;
-      position: relative;
-      z-index: 9999;
-      transform: scale(1);
-      transform-origin: top center;
-    }
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
 
-    /* Giữ font đủ lớn để Safari không zoom */
-    input, select, textarea, button {
-      font-size: 16px !important;
-      line-height: 1.4;
-    }
+  body.agoda-focused {
+    overflow-y: hidden !important;
+  }
+</style>
 
-    /* Mobile tuning */
-    @media (max-width: 480px) {
-      #adgshp1134854488 {
-        width: 100%;
-        max-width: 360px;
-        height: 48px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="widget-wrapper">
-    <div id="adgshp1134854488"></div>
+<div class="agoda-wrapper">
+  <div class="agoda-container" id="agodaBox">
+    <iframe class="agoda-iframe"
+      src="https://xacthucviet.github.io/xacthucviet-tools/agoda-search.html"
+      loading="lazy">
+    </iframe>
   </div>
+</div>
 
-  <!-- Agoda script -->
-  <script type="text/javascript" src="//cdn0.agoda.net/images/sherpa/js/sherpa_init1_08.min.js"></script>
-  <script type="text/javascript">
-    var stg = {};
-    stg.crt = "8068189953740";
-    stg.version = "1.04";
-    stg.id = stg.name = "adgshp1134854488";
-    stg.width = "300px";
-    stg.height = "48px";
-    stg.ReferenceKey = "esMvFFB9Yqj7ourN0hnRjg==";
-    stg.Layout = "Wide";
-    stg.Language = "vi-vn";
-    stg.Cid = "1950843";
-    stg.City = "15932"; // Đà Lạt
-    stg.DestinationName = "Đà Lạt, Việt Nam";
-    stg.OverideConf = false;
-    new AgdSherpa(stg).initialize();
-  </script>
+<script>
+  const box = document.getElementById('agodaBox');
 
-  <!-- JS gửi height & focus/blur/select lên parent -->
-  <script>
-    const widgetBox = document.getElementById('adgshp1134854488');
+  // Nghe message từ iframe
+  window.addEventListener('message', (e) => {
+    if(!box) return;
 
-    function sendHeight(height){
-      window.parent.postMessage({type:'resize', height: height}, '*');
+    switch(e.data){
+      case 'agoda-focus':
+        box.classList.add('focused');
+        document.body.classList.add('agoda-focused');
+        // Mở overflow cho tất cả parent
+        let parent = box.parentElement;
+        while(parent){
+          parent.style.overflow = 'visible';
+          parent = parent.parentElement;
+        }
+        break;
+
+      case 'agoda-blur':
+      case 'agoda-select-suggestion':
+        // Thu lại height ngay khi blur hoặc chọn suggestion
+        box.classList.remove('focused');
+        document.body.classList.remove('agoda-focused');
+        box.style.height = '48px';
+        break;
+
+      default:
+        // Resize từ iframe (suggestion popup)
+        if(e.data?.type === 'resize' && e.data.height){
+          box.style.height = e.data.height + 'px';
+        }
     }
-
-    function sendFocus(){ window.parent.postMessage('agoda-focus','*'); }
-    function sendBlur(){ window.parent.postMessage('agoda-blur','*'); }
-    function sendSelect(){ window.parent.postMessage('agoda-select-suggestion','*'); }
-
-    // focus/blur từ input trong widget
-    function setupInputListener(){
-      const input = widgetBox.querySelector('input');
-      if(!input) return;
-      input.addEventListener('focus', ()=>{
-        sendFocus();
-        setTimeout(()=>sendHeight(widgetBox.scrollHeight),200);
-      });
-      input.addEventListener('blur', ()=>{
-        sendBlur();
-        setTimeout(()=>sendHeight(widgetBox.scrollHeight),400);
-      });
-      input.addEventListener('input', ()=>{
-        // Khi chọn suggestion (người dùng nhập xong và chọn)
-        setTimeout(()=>sendSelect(), 200);
-      });
-    }
-
-    // Thường xuyên đo chiều cao vì suggestion có thể xuất hiện chậm
-    setInterval(()=>sendHeight(widgetBox.scrollHeight), 800);
-
-    // Setup sau khi Sherpa init xong
-    window.addEventListener('load', ()=>{
-      setupInputListener();
-    });
-  </script>
-</body>
-</html>
+  });
+</script>
