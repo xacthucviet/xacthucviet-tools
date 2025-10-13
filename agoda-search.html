@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Agoda Search Widget</title>
 
@@ -26,24 +26,23 @@
         justify-content: center;
         align-items: flex-start;
         width: 100%;
-        height: 100%;
-        overflow: visible; /* ✅ Cho phép suggestion tràn ra */
+        height: auto; /* ✅ chỉ cao bằng search box */
+        overflow: visible;
         position: relative;
         z-index: 9999;
       }
 
-      /* ✅ Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
+      /* ✅ Widget container */
       #adgshp1134854488 {
-        transform: scale(0.9);
-        transform-origin: top center;
         width: 320px;
-        height: 96px;
+        height: 96px; /* chỉ search box */
+        transform: none; /* desktop không scale */
         overflow: visible;
         z-index: 9999;
         position: relative;
       }
 
-      /* ✅ Giữ font đủ lớn để Safari không zoom */
+      /* ✅ Font đủ lớn để Safari không zoom */
       input,
       select,
       textarea,
@@ -52,11 +51,13 @@
         line-height: 1.4;
       }
 
-      /* ✅ Mobile tuning */
+      /* ✅ Mobile: show đúng search box, không scale */
       @media (max-width: 480px) {
         #adgshp1134854488 {
-          transform: scale(0.84);
-          transform-origin: top center;
+          width: 100%;
+          max-width: 360px;
+          height: 96px; /* chỉ search box */
+          transform: none;
         }
       }
     </style>
@@ -93,11 +94,13 @@
     <script>
       function sendHeight() {
         const body = document.body;
-        const height = Math.max(
-          body.scrollHeight,
-          body.offsetHeight,
-          160 // tối thiểu
-        );
+        let height = Math.max(body.scrollHeight, body.offsetHeight, 96);
+
+        // ✅ Mobile chỉ show search box
+        if (window.innerWidth <= 480) {
+          height = 96;
+        }
+
         window.parent.postMessage({ type: "resize", height }, "*");
       }
 
