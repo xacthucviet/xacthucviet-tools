@@ -14,35 +14,38 @@
         margin: 0;
         padding: 0;
         background: transparent;
-        overflow: visible; /* ✅ Cho phép suggestion xổ ra */
         width: 100%;
         height: 100%;
+        overflow-x: hidden; /* loại bỏ scroll ngang */
+        overflow-y: visible;
         -webkit-text-size-adjust: 100%;
       }
 
-      /* ✅ Khung căn giữa widget */
+      /* Khung căn giữa widget */
       .widget-wrapper {
         display: flex;
         justify-content: center;
         align-items: flex-start;
         width: 100%;
-        height: auto; /* ✅ chỉ cao bằng search box */
-        overflow: visible;
+        height: auto;
+        overflow: visible; /* cho phép suggestion xổ ra */
         position: relative;
         z-index: 9999;
       }
 
-      /* ✅ Widget container */
+      /* Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
       #adgshp1134854488 {
         width: 320px;
-        height: 96px; /* chỉ search box */
-        transform: none; /* desktop không scale */
+        height: 96px;
         overflow: visible;
         z-index: 9999;
         position: relative;
+        transform: scale(1); /* không scale trên desktop */
+        transform-origin: top center;
+        box-sizing: border-box;
       }
 
-      /* ✅ Font đủ lớn để Safari không zoom */
+      /* Giữ font đủ lớn để Safari không zoom */
       input,
       select,
       textarea,
@@ -51,13 +54,14 @@
         line-height: 1.4;
       }
 
-      /* ✅ Mobile: show đúng search box, không scale */
+      /* Mobile tuning */
       @media (max-width: 480px) {
         #adgshp1134854488 {
-          width: 100%;
-          max-width: 360px;
-          height: 96px; /* chỉ search box */
-          transform: none;
+          width: 100%;      /* full container width */
+          max-width: 360px; /* không quá max thiết kế */
+          height: 96px;     /* chỉ search box */
+          transform: none;  /* bỏ scale để không méo */
+          box-sizing: border-box;
         }
       }
     </style>
@@ -90,17 +94,15 @@
       new AgdSherpa(stg).initialize();
     </script>
 
-    <!-- ✅ Gửi tín hiệu focus/blur + height thật ra ngoài -->
+    <!-- Gửi tín hiệu focus/blur + height thật ra ngoài -->
     <script>
       function sendHeight() {
         const body = document.body;
-        let height = Math.max(body.scrollHeight, body.offsetHeight, 96);
-
-        // ✅ Mobile chỉ show search box
-        if (window.innerWidth <= 480) {
-          height = 96;
-        }
-
+        const height = Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          160 // tối thiểu
+        );
         window.parent.postMessage({ type: "resize", height }, "*");
       }
 
