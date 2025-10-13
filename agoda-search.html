@@ -9,16 +9,14 @@
     <title>Agoda Search Widget</title>
 
     <style>
-      html,
-      body {
+      html, body {
         margin: 0;
         padding: 0;
         background: transparent;
         width: 100%;
         height: 100%;
-        overflow-x: hidden; /* loại bỏ scroll ngang */
-        overflow-y: visible;
         -webkit-text-size-adjust: 100%;
+        overflow: visible; /* cho phép suggestion xổ ra */
       }
 
       /* Khung căn giữa widget */
@@ -27,41 +25,35 @@
         justify-content: center;
         align-items: flex-start;
         width: 100%;
-        height: auto;
-        overflow: visible; /* cho phép suggestion xổ ra */
+        overflow: hidden; /* tránh scroll ngang */
         position: relative;
         z-index: 9999;
       }
 
-      /* Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
+      /* Container iframe */
       #adgshp1134854488 {
-        width: 320px;
-        height: 96px;
-        overflow: visible;
-        z-index: 9999;
+        width: 360px; /* desktop width */
+        height: 200px; /* desktop height */
+        overflow: hidden;
         position: relative;
-        transform: scale(1); /* không scale trên desktop */
-        transform-origin: top center;
-        box-sizing: border-box;
+        z-index: 9999;
+        transform: scale(1); /* desktop bình thường */
+        transform-origin: top left;
       }
 
       /* Giữ font đủ lớn để Safari không zoom */
-      input,
-      select,
-      textarea,
-      button {
+      input, select, textarea, button {
         font-size: 16px !important;
         line-height: 1.4;
       }
 
-      /* Mobile tuning */
+      /* --- Mobile --- */
       @media (max-width: 480px) {
         #adgshp1134854488 {
-          width: 100%;      /* full container width */
-          max-width: 360px; /* không quá max thiết kế */
-          height: 96px;     /* chỉ search box */
-          transform: none;  /* bỏ scale để không méo */
-          box-sizing: border-box;
+          width: 360px; 
+          height: 96px; /* chỉ show search box */
+          transform: scale(0.53); /* giảm để vừa container */
+          transform-origin: top left;
         }
       }
     </style>
@@ -94,19 +86,14 @@
       new AgdSherpa(stg).initialize();
     </script>
 
-    <!-- Gửi tín hiệu focus/blur + height thật ra ngoài -->
+    <!-- Focus/blur + resize -->
     <script>
       function sendHeight() {
         const body = document.body;
-        const height = Math.max(
-          body.scrollHeight,
-          body.offsetHeight,
-          160 // tối thiểu
-        );
+        const height = Math.max(body.scrollHeight, body.offsetHeight, 160);
         window.parent.postMessage({ type: "resize", height }, "*");
       }
 
-      // focus/blur từ input trong iframe Agoda
       document.addEventListener("focusin", () => {
         window.parent.postMessage("agoda-focus", "*");
         setTimeout(sendHeight, 200);
@@ -114,10 +101,9 @@
 
       document.addEventListener("focusout", () => {
         window.parent.postMessage("agoda-blur", "*");
-        setTimeout(() => sendHeight(), 400);
+        setTimeout(sendHeight, 400);
       });
 
-      // Đo định kỳ vì suggestion có thể hiện chậm
       setInterval(sendHeight, 800);
     </script>
   </body>
