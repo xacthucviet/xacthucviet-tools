@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
     <title>Agoda Search Widget</title>
 
@@ -26,15 +26,15 @@
         justify-content: center;
         align-items: flex-start;
         width: 100%;
-        height: auto;
+        height: 100%;
         overflow: visible; /* ✅ Cho phép suggestion tràn ra */
         position: relative;
         z-index: 9999;
       }
 
-      /* ✅ Phóng to để hiển thị kích thước thật */
+      /* ✅ Scale vừa khít 320x96, vẫn cho phép popup xổ ra */
       #adgshp1134854488 {
-        transform: scale(1.1); /* ✅ phóng to 10% */
+        transform: scale(0.9);
         transform-origin: top center;
         width: 320px;
         height: 96px;
@@ -55,7 +55,7 @@
       /* ✅ Mobile tuning */
       @media (max-width: 480px) {
         #adgshp1134854488 {
-          transform: scale(1.25); /* ✅ phóng to hơn cho mobile */
+          transform: scale(0.84);
           transform-origin: top center;
         }
       }
